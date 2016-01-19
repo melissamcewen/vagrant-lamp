@@ -26,10 +26,14 @@ Vagrant.configure("2") do |config|
     config.berkshelf.enabled = false
   end
 
+ # config.ssh.username = 'vagrant'
+ # config.ssh.password = 'vagrant'
+ # config.ssh.insert_key = 'false'
+
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine.
   # Forward MySql port on 33066, used for connecting admin-clients to localhost:33066
-  config.vm.network :forwarded_port, guest: 3306, host: 33066
+  config.vm.network :forwarded_port, guest: 3307, host: 33077
   # Forward http port on 8080, used for connecting web browsers to localhost:8080
   config.vm.network :forwarded_port, guest: 80, host: 8080
   # Forward http port on 8025, used for connecting web browsers to MailHog
@@ -40,15 +44,22 @@ Vagrant.configure("2") do |config|
   config.vm.network :private_network, ip: "192.168.33.10"
 
   # Set share folder permissions to 777 so that apache can write files
-  config.vm.synced_folder ".", "/vagrant", mount_options: ['dmode=777','fmode=666']
+  # EXTREMELY SLOW, but node and ruby behave properly
+# config.vm.synced_folder ".", "/vagrant", type: "smb", :mount_options => ["file_mode=0666,dir_mode=0777"]
+  # Just slow, really slow
+  # config.vm.synced_folder ".", "/vagrant", mount_options: ['dmode=777','fmode=666']
+  # Fast but a lot of things don't work properly
+ config.vm.synced_folder ".", "/vagrant", :nfs => { :mount_options => ["dmode=777","fmode=666"] }
+  # config.vm.synced_folder ".", "/vagrant", type: "nfs"
 
   # Provider-specific configuration so you can fine-tune VirtualBox for Vagrant.
   # These expose provider-specific options.
   config.vm.provider :virtualbox do |vb|
     # Use VBoxManage to customize the VM.
     # For example to change memory or number of CPUs:
-    vb.customize ["modifyvm", :id, "--memory", "1024"]
-    vb.customize ["modifyvm", :id, "--cpus", "1"]
+    vb.customize ["modifyvm", :id, "--memory", "6144"]
+    vb.customize ["modifyvm", :id, "--cpus", "2"]
+    vb.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate//vagrant", "1"]
   end
 
   # Enable provisioning with chef zero, specifying a cookbooks path, roles
